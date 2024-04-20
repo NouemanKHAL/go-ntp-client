@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultNTPServer = "pool.ntp.org"
+	defaultNTPServer = "pool.ntp.org:123"
 
 	// The offset between NTP time epoch and UNIX time epoch is 70 years in seconds
 	ntpTimeOffset = 2208988800
