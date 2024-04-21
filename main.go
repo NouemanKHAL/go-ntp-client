@@ -6,6 +6,7 @@ import (
 	"math"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -117,6 +118,9 @@ func main() {
 	host := defaultNTPServer
 	if len(os.Args) > 1 {
 		host = os.Args[1]
+	}
+	if !strings.HasSuffix(host, ":123") {
+		host += ":123"
 	}
 	_, err := queryNTPServer(host)
 	if err != nil {
