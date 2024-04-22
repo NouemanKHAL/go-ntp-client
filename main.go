@@ -124,7 +124,7 @@ func main() {
 	}
 	_, err := queryNTPServer(host)
 	if err != nil {
-		os.Stderr.WriteString(fmt.Sprintf("error quering the NTP host %s: %s", host, err))
+		os.Stderr.WriteString(fmt.Sprintf("error querying the NTP host %s: %s", host, err))
 		os.Exit(1)
 	}
 }
