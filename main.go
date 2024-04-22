@@ -73,7 +73,6 @@ func queryNTPServer(host string) (NTPPayload, error) {
 	defer conn.Close()
 
 	t1TmpS, t1TmpF := UnixToNTP(time.Now())
-	t1Sec, t1Frac := int64(t1TmpS), int64(t1TmpF)
 
 	p.TransmitSec = uint32(t1TmpS)
 	p.TransmitFrac = uint32(t1TmpF)
@@ -88,29 +87,6 @@ func queryNTPServer(host string) (NTPPayload, error) {
 	if err != nil {
 		return res, err
 	}
-
-	t2Sec := int64(res.ReceiveSec)
-	t2Frac := int64(res.ReceiveFrac)
-	t3Sec := int64(res.TransmitSec)
-	t3Frac := int64(res.TransmitFrac)
-
-	t4TmpS, t4TmpF := UnixToNTP(time.Now())
-	t4Sec, t4Frac := int64(t4TmpS), int64(t4TmpF)
-
-	fmt.Printf("t1\t= %d.%d\n", t1Sec, t1Frac)
-	fmt.Printf("t2\t= %d.%d\n", t2Sec, t2Frac)
-	fmt.Printf("t3\t= %d.%d\n", t3Sec, t3Frac)
-	fmt.Printf("t4\t= %d.%d\n", t4Sec, t4Frac)
-
-	dSec := (t4Sec - t1Sec) - (t3Sec - t2Sec)
-	dFrac := (t4Frac - t1Frac) - (t3Frac - t2Frac)
-
-	offsetSec := float64((t2Sec-t1Sec)+(t3Sec-t4Sec)) / 2.
-	offsetFrac := float64((t2Frac-t1Frac)+(t3Frac-t4Frac)) / 2.
-
-	fmt.Printf("delay\t= %s\n", formatTimestamp(dSec, dFrac))
-	fmt.Printf("offset\t= %s\n", formatTimestamp(offsetSec, offsetFrac))
-
 	return res, err
 }
 
@@ -122,9 +98,32 @@ func main() {
 	if !strings.HasSuffix(host, ":123") {
 		host += ":123"
 	}
-	_, err := queryNTPServer(host)
+	resp, err := queryNTPServer(host)
 	if err != nil {
 		os.Stderr.WriteString(fmt.Sprintf("error querying the NTP host %s: %s", host, err))
 		os.Exit(1)
 	}
+
+	t1Sec := int64(resp.OriginSec)
+	t1Frac := int64(resp.OriginFrac)
+	t2Sec := int64(resp.ReceiveSec)
+	t2Frac := int64(resp.ReceiveFrac)
+	t3Sec := int64(resp.TransmitSec)
+	t3Frac := int64(resp.TransmitFrac)
+
+	t4TmpS, t4TmpF := UnixToNTP(time.Now())
+	t4Sec, t4Frac := int64(t4TmpS), int64(t4TmpF)
+
+	dSec := (t4Sec - t1Sec) - (t3Sec - t2Sec)
+	dFrac := (t4Frac - t1Frac) - (t3Frac - t2Frac)
+
+	offsetSec := float64((t2Sec-t1Sec)+(t3Sec-t4Sec)) / 2.
+	offsetFrac := float64((t2Frac-t1Frac)+(t3Frac-t4Frac)) / 2.
+
+	fmt.Printf("t1\t= %d.%d\n", t1Sec, t1Frac)
+	fmt.Printf("t2\t= %d.%d\n", t2Sec, t2Frac)
+	fmt.Printf("t3\t= %d.%d\n", t3Sec, t3Frac)
+	fmt.Printf("t4\t= %d.%d\n", t4Sec, t4Frac)
+	fmt.Printf("delay\t= %s\n", formatTimestamp(dSec, dFrac))
+	fmt.Printf("offset\t= %s\n", formatTimestamp(offsetSec, offsetFrac))
 }
